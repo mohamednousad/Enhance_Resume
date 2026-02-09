@@ -1,0 +1,174 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>NeuroMatch</title><script src="https://cdn.tailwindcss.com"></script><script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{mono:['JetBrains Mono','monospace'],sans:['Rajdhani','sans-serif']},colors:{'void':'#050b14','cyber':'#00f3ff','neon':'#00ff9d','danger':'#ff2a6d'},backgroundImage:{'grid-pattern':"linear-gradient(to right, #1e293b 1px, transparent 1px), linear-gradient(to bottom, #1e293b 1px, transparent 1px)"}}}}</script><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet"><script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script><script>pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';</script><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script><script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/toastify-js"></script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"><script src="https://cdn.jsdelivr.net/npm/@faker-js/faker@8.4.1/dist/faker.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script><script src="https://cdn.jsdelivr.net/npm/chart.js"></script><script src="https://unpkg.com/typed.js@2.1.0/dist/typed.umd.js"></script><script src="https://unpkg.com/@phosphor-icons/web"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script><script src="https://unpkg.com/compromise"></script><style>::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:#050b14}::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px}::-webkit-scrollbar-thumb:hover{background:#00f3ff}.glass{background:rgba(5,11,20,0.85);backdrop-filter:blur(12px);border:1px solid rgba(0,243,255,0.1);box-shadow:0 0 20px rgba(0,243,255,0.05)}.scan-line{position:absolute;width:100%;height:4px;background:#00ff9d;filter:blur(4px);opacity:0.6;animation:scan 2s linear infinite;z-index:50;pointer-events:none}@keyframes scan{0%{top:0}100%{top:100%}}.hologram{animation:flicker 4s infinite} @keyframes flicker{0%,100%{opacity:1}50%{opacity:0.8}52%{opacity:0.4}54%{opacity:0.9}}.loading-bar{box-shadow:0 0 10px #00ff9d}</style></head><body class="bg-void text-slate-300 h-screen overflow-hidden font-sans selection:bg-cyber selection:text-black"><div id="vanta-bg" class="absolute inset-0 z-0 pointer-events-none opacity-40"></div><div id="boot-overlay" class="fixed inset-0 z-[100] bg-void flex flex-col items-center justify-center space-y-4"><div class="text-cyber font-mono text-4xl font-bold tracking-[0.2em] animate-pulse">SYSTEM_BOOT</div><div class="w-64 h-1 bg-slate-800"><div id="boot-bar" class="h-full bg-cyber w-0 transition-all duration-[2000ms] ease-out"></div></div><div class="text-[10px] font-mono text-slate-500">INITIALIZING NEURAL KERNELS...</div></div><nav class="h-14 border-b border-slate-800 bg-void/80 z-50 relative flex items-center justify-between px-6 backdrop-blur-md"><div class="flex items-center gap-3"><i class="ph-duotone ph-cpu text-cyber text-2xl animate-spin-slow"></i><h1 class="font-bold tracking-widest text-lg text-white">NEURO<span class="text-cyber">MATCH</span> <span class="text-[10px] border border-cyber text-cyber px-1 rounded">Developed By Nousad</span></h1></div><div class="flex gap-4"><button onclick="sys.autoPilot()" class="flex items-center gap-2 text-xs font-bold bg-cyber/10 text-cyber border border-cyber/50 px-4 py-1.5 rounded hover:bg-cyber hover:text-black transition-all shadow-[0_0_10px_rgba(0,243,255,0.2)]"><i class="ph-bold ph-robot"></i> AUTO-PILOT</button></div></nav><main class="relative z-10 flex h-[calc(100vh-3.5rem)]"><div class="w-1/3 border-r border-slate-800 flex flex-col glass"><div class="p-3 border-b border-slate-800 bg-slate-900/50 flex justify-between"><span class="text-xs font-mono text-cyber uppercase"><i class="ph-bold ph-terminal"></i> Job Context Vector</span><button onclick="sys.loadJD()" class="text-[10px] hover:text-white transition"><i class="ph-bold ph-download-simple"></i> Load Preset</button></div><textarea id="jd-input" class="flex-1 bg-transparent p-4 font-mono text-xs text-slate-400 focus:outline-none resize-none placeholder:text-slate-700" placeholder="// Awaiting Input Stream..."></textarea><div class="p-4 border-t border-slate-800 bg-slate-900/80"><div id="drop-zone" class="border-2 border-dashed border-slate-700 rounded h-32 flex flex-col items-center justify-center cursor-pointer hover:border-cyber hover:bg-cyber/5 transition-all group relative overflow-hidden"><input type="file" id="file-upload" class="absolute inset-0 opacity-0 z-20 cursor-pointer"><i class="ph-duotone ph-file-pdf text-3xl text-slate-600 group-hover:text-cyber mb-2 transition-colors"></i><div class="text-xs font-mono text-slate-500 group-hover:text-white" id="file-label">UPLOAD PDF NODE</div><div id="scan-beam" class="hidden absolute w-full h-1 bg-cyber shadow-[0_0_15px_#00f3ff] top-0 transition-all"></div></div><button onclick="sys.analyze()" class="mt-3 w-full bg-cyber text-black font-bold py-3 rounded text-sm tracking-wider hover:shadow-[0_0_20px_#00f3ff] transition-all flex justify-center items-center gap-2"><i class="ph-bold ph-lightning"></i> EXECUTE NEURAL SCAN</button></div></div><div class="w-2/3 bg-slate-900/30 relative overflow-hidden"><div id="loader" class="hidden absolute inset-0 z-50 bg-void/90 flex flex-col items-center justify-center backdrop-blur-sm"><div class="w-24 h-24 border-4 border-slate-800 border-t-cyber rounded-full animate-spin"></div><div id="proc-text" class="mt-4 font-mono text-cyber text-xs typing-effect">PROCESSING TENSORS...</div></div><div id="empty-state" class="h-full flex flex-col items-center justify-center opacity-30"><i class="ph-duotone ph-aperture text-6xl text-slate-500 animate-pulse"></i><div class="mt-4 font-mono text-sm">AWAITING DATA INJECTION</div></div><div id="dashboard" class="hidden h-full overflow-y-auto p-8"><div class="grid grid-cols-4 gap-4 mb-6"><div class="glass p-4 rounded border-l-2 border-cyber"><div class="text-[10px] font-mono text-slate-500 uppercase">Match Index</div><div class="text-4xl font-bold text-white mt-1 flex items-baseline gap-2"><span id="score-val">0</span><span class="text-sm text-cyber">%</span></div></div><div class="glass p-4 rounded border-l-2 border-neon"><div class="text-[10px] font-mono text-slate-500 uppercase">Skills Found</div><div class="text-2xl font-bold text-white mt-1" id="match-count">0</div></div><div class="glass p-4 rounded border-l-2 border-danger"><div class="text-[10px] font-mono text-slate-500 uppercase">Critical Gaps</div><div class="text-2xl font-bold text-white mt-1" id="gap-count">0</div></div><div class="glass p-4 rounded border-l-2 border-purple-500"><div class="text-[10px] font-mono text-slate-500 uppercase">Token Count</div><div class="text-2xl font-bold text-white mt-1" id="token-count">0</div></div></div><div class="grid grid-cols-2 gap-6 h-64 mb-6"><div class="glass p-4 rounded"><canvas id="radarChart"></canvas></div><div class="glass p-4 rounded overflow-y-auto"><h3 class="text-xs font-bold text-cyber mb-3 font-mono">// DETECTED_ENTITIES</h3><div id="tags-container" class="flex flex-wrap gap-2"></div></div></div><div class="glass p-4 rounded"><h3 class="text-xs font-bold text-slate-400 mb-3 font-mono">// SEMANTIC_LOG</h3><div id="audit-log" class="font-mono text-[10px] space-y-1 text-slate-400 h-32 overflow-y-auto"></div></div></div></div></main><script>
+const sfx={init:new Howl({src:['https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'],volume:.5}),type:new Howl({src:['https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3'],volume:.1,rate:3}),scan:new Howl({src:['https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3'],volume:.2}),alert:new Howl({src:['https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3'],volume:.3})};
+const sys={
+    data:{resume:"",jd:"",tokens:[]},
+    chart:null,
+    boot(){
+        setTimeout(()=>{
+            document.getElementById('boot-bar').style.width='100%';
+            sfx.init.play();
+        },100);
+        setTimeout(()=>{
+            gsap.to('#boot-overlay',{opacity:0,duration:1,onComplete:()=>document.getElementById('boot-overlay').remove()});
+            this.initVanta();
+        },2200);
+        this.listeners();
+    },
+    initVanta(){
+        VANTA.NET({el:"#vanta-bg",mouseControls:true,touchControls:true,gyroControls:false,minHeight:200.00,minWidth:200.00,scale:1.00,scaleMobile:1.00,color:0x00f3ff,backgroundColor:0x050b14,points:10.00,maxDistance:20.00,spacing:18.00});
+    },
+    listeners(){
+        const dz=document.getElementById('drop-zone');
+        const inp=document.getElementById('file-upload');
+        dz.addEventListener('click',()=>sfx.type.play());
+        inp.addEventListener('change',async(e)=>{
+            if(e.target.files[0]){
+                this.handleFile(e.target.files[0]);
+            }
+        });
+        document.querySelectorAll('button').forEach(b=>{
+            b.addEventListener('mouseenter',()=>sfx.type.play());
+        });
+    },
+    async handleFile(file){
+        const beam=document.getElementById('scan-beam');
+        beam.classList.remove('hidden');
+        gsap.to(beam,{top:'100%',duration:1.5,repeat:3,yoyo:true});
+        sfx.scan.play();
+        
+        try{
+            const ab=await file.arrayBuffer();
+            const pdf=await pdfjsLib.getDocument(ab).promise;
+            let txt='';
+            for(let i=1;i<=pdf.numPages;i++){
+                const p=await pdf.getPage(i);
+                const tc=await p.getTextContent();
+                txt+=tc.items.map(s=>s.str).join(' ')+' ';
+            }
+            this.data.resume=txt;
+            this.notify("PDF VECTORIZED SUCCESSFULLY", "linear-gradient(to right, #00b09b, #96c93d)");
+            document.getElementById('file-label').innerHTML = `<span class="text-cyber">${file.name}</span> [READY]`;
+        }catch(e){
+            console.error(e);
+            this.notify("VECTORIZATION FAILED: DAMAGED STREAM", "linear-gradient(to right, #ff5f6d, #ffc371)");
+        }
+        gsap.to(beam,{opacity:0});
+    },
+    loadJD(){
+        const txt="Senior Full Stack Engineer. Requirements: Expert in React, Node.js, and TypeScript. Experience with AWS Lambda and DynamoDB. Strong grasp of GraphQL and Docker containerization. CI/CD pipeline mastery (Jenkins/GitHub Actions). 5+ years building scalable microservices.";
+        const el=document.getElementById('jd-input');
+        el.value="";
+        let i=0;
+        const t=setInterval(()=>{
+            el.value+=txt.charAt(i);
+            el.scrollTop=el.scrollHeight;
+            if(i%3===0) sfx.type.play();
+            i++;
+            if(i>txt.length-1) clearInterval(t);
+        },10);
+        this.data.jd=txt;
+    },
+    async autoPilot(){
+        this.notify("INITIATING AUTONOMOUS MODE", "#00f3ff");
+        this.loadJD();
+        await new Promise(r=>setTimeout(r,3000));
+        
+        // Simulating Ghost Candidate
+        const fakeName = faker.person.fullName();
+        const fakeResume = `Resumé: ${fakeName}. Experienced Software Engineer with 6 years in React, Node.js, TypeScript. Built AWS microservices using Docker and Jenkins. Managed DynamoDB databases. Skilled in GraphQL APIs. Education: BS Computer Science.`;
+        
+        document.getElementById('file-label').innerHTML = `<span class="text-neon">GHOST_PROTOCOL: ${fakeName}.pdf</span>`;
+        this.data.resume = fakeResume;
+        sfx.scan.play();
+        
+        const beam=document.getElementById('scan-beam');
+        beam.classList.remove('hidden');
+        gsap.fromTo(beam,{top:0},{top:'100%',duration:0.5,repeat:4,yoyo:true});
+        
+        await new Promise(r=>setTimeout(r,2500));
+        this.analyze();
+    },
+    async analyze(){
+        this.data.jd = document.getElementById('jd-input').value || this.data.jd;
+        if(!this.data.resume || !this.data.jd){ sfx.alert.play(); return this.notify("INPUT STREAM EMPTY", "#ff2a6d"); }
+        
+        document.getElementById('loader').classList.remove('hidden');
+        document.getElementById('empty-state').classList.add('hidden');
+        
+        // Processing Simulation
+        const steps = ["TOKENIZING...", "CALCULATING TENSORS...", "OPTIMIZING MATRIX...", "RENDERING GUI..."];
+        const pText = document.getElementById('proc-text');
+        for(const s of steps){
+            pText.innerText = s;
+            sfx.type.play();
+            await new Promise(r=>setTimeout(r,600));
+        }
+
+        // Logic
+        const jdDoc = nlp(this.data.jd);
+        const resumeRaw = this.data.resume.toLowerCase();
+        let terms = [...jdDoc.nouns().out('array'), ...jdDoc.verbs().out('array'), ...jdDoc.acronyms().out('array')];
+        terms = _.uniq(terms.filter(w=>w.length>2));
+        
+        const found = terms.filter(t=>resumeRaw.includes(t.toLowerCase()));
+        const missing = terms.filter(t=>!resumeRaw.includes(t.toLowerCase()));
+        const score = Math.round((found.length/terms.length)*100);
+
+        document.getElementById('loader').classList.add('hidden');
+        const dash = document.getElementById('dashboard');
+        dash.classList.remove('hidden');
+        
+        // Render
+        gsap.from("#dashboard > div", {y:20, opacity:0, stagger:0.1, duration:0.5});
+        
+        let i=0;
+        const countAnim = setInterval(()=>{
+            document.getElementById('score-val').innerText = i;
+            if(i>=score) clearInterval(countAnim);
+            i++;
+        },20);
+
+        document.getElementById('match-count').innerText = found.length;
+        document.getElementById('gap-count').innerText = missing.length;
+        document.getElementById('token-count').innerText = this.data.resume.split(' ').length;
+
+        // Tags
+        const c = document.getElementById('tags-container');
+        c.innerHTML = found.map(f=>`<span class="px-2 py-1 bg-neon/10 border border-neon/50 text-neon text-[10px] rounded shadow-[0_0_5px_rgba(0,255,157,0.3)]">${f}</span>`).join('') + 
+                      missing.map(m=>`<span class="px-2 py-1 bg-danger/10 border border-danger/50 text-danger text-[10px] rounded opacity-60 line-through">${m}</span>`).join('');
+
+        // Log
+        const log = document.getElementById('audit-log');
+        log.innerHTML = `[${new Date().toLocaleTimeString()}] SCAN COMPLETE. ID: ${Math.floor(Math.random()*10000)}<br>` + 
+                        `> Found ${found.length} hard matches.<br>` + 
+                        `> Detected ${missing.length} critical variances.<br>` +
+                        `> Heuristic integrity: ${(score>70?'OPTIMAL':'SUBOPTIMAL')}`;
+
+        // Chart
+        if(this.chart) this.chart.destroy();
+        this.chart = new Chart(document.getElementById('radarChart'), {
+            type: 'radar',
+            data: {
+                labels: ['Technical', 'Soft Skills', 'Experience', 'Education', 'Format'],
+                datasets: [{
+                    label: 'Candidate Vector',
+                    data: [score, Math.min(score+10,100), Math.min(score-10, 100), 80, 95],
+                    backgroundColor: 'rgba(0, 243, 255, 0.2)',
+                    borderColor: '#00f3ff',
+                    pointBackgroundColor: '#00ff9d',
+                    pointBorderColor: '#fff'
+                }]
+            },
+            options: {
+                scales: { r: { grid: { color: '#1e293b' }, angleLines: { color: '#1e293b' }, pointLabels: { color: '#94a3b8' } } },
+                plugins: { legend: { display: false } }
+            }
+        });
+        sfx.init.play();
+    },
+    notify(msg, color){
+        Toastify({text: msg, duration: 3000, gravity: "top", position: "right", style: { background: color, boxShadow: "0 0 10px "+color }}).showToast();
+    }
+};
+window.onload = ()=>sys.boot();
+</script></body></html>
