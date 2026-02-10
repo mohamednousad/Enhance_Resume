@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TalentScout AI | Enterprise ATS Analytics</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
+                    colors: { slate: { 850: '#1e293b' } }
+                }
+            }
+        }
+    </script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+
+    <script src="https://unpkg.com/compromise"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+
+    <script src="https://unpkg.com/tippy.js@6"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <script src="https://unpkg.com/stopword/dist/stopword.umd.js"></script>
+
+    <style>
+        body { background-color: #f1f5f9; }
+        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border: 1px solid rgba(226, 232, 240, 0.8); }
+        .custom-scroll::-webkit-scrollbar { width: 5px; height: 5px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .loader-ring { border-top-color: #4f46e5; animation: spinner 0.8s linear infinite; }
+        @keyframes spinner { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden text-slate-800">
+
+    <nav class="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-6 z-30 shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center text-white">
+                <i class="ph-bold ph-aperture text-xl"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-slate-800 leading-none">TalentScout <span class="text-indigo-600">AI</span></h1>
+                <p class="text-[10px] text-slate-500 font-medium uppercase tracking-widest mt-0.5">Enterprise ATS Engine v3.2</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="hidden md:flex items-center gap-2 text-xs font-mono bg-slate-100 px-3 py-1.5 rounded-full text-slate-500">
+                <i class="ph-fill ph-shield-check text-emerald-500"></i> Developed By Mohamed Nousad
+            </div>
+            <button onclick="app.exportReport()" class="text-sm font-medium text-slate-600 hover:text-indigo-600 flex items-center gap-2 transition-colors">
+                <i class="ph-bold ph-download-simple"></i> Export PDF
+            </button>
+        </div>
+    </nav>
+
+    <div class="flex flex-1 overflow-hidden relative">
+        
+        <aside class="w-[400px] bg-white border-r border-slate-200 flex flex-col z-20 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+            <div class="flex-1 overflow-y-auto custom-scroll p-6 space-y-6">
+                
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">Candidate Profile (PDF)</label>
+                        <i class="ph-fill ph-info text-slate-400 cursor-help" data-tippy-content="Parsing utilizes OCR-ready PDF text extraction layer."></i>
+                    </div>
+                    <div id="dropZone" class="border border-dashed border-slate-300 rounded-lg bg-slate-50/50 p-8 text-center transition-all hover:border-indigo-500 hover:bg-indigo-50/30 group cursor-pointer relative">
+                        <input type="file" id="fileIn" accept=".pdf" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                        <div class="w-10 h-10 bg-white rounded-full shadow-sm border border-slate-100 flex items-center justify-center mx-auto mb-3 text-slate-400 group-hover:text-indigo-600 transition-colors">
+                            <i class="ph-duotone ph-upload-simple text-xl"></i>
+                        </div>
+                        <p id="fileName" class="text-sm font-medium text-slate-600">Drag & Drop Resume</p>
+                        <p class="text-xs text-slate-400 mt-1">Supports ATS-friendly PDF formats</p>
+                    </div>
+                </div>
+
+                <div class="space-y-3 flex-1 flex flex-col">
+                    <div class="flex justify-between items-center">
+                        <label class="text-xs font-bold text-slate-500 uppercase tracking-wide">Role Requirements (JD)</label>
+                        <button class="text-xs text-indigo-600 hover:underline" onclick="document.getElementById('jdIn').value = ''">Clear</button>
+                    </div>
+                    <div class="relative flex-1">
+                        <textarea id="jdIn" class="w-full h-64 p-4 text-xs font-mono leading-relaxed bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none resize-none transition-all placeholder:text-slate-400" placeholder="// Paste Job Description raw text here...&#10;// System will auto-extract competencies."></textarea>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="p-5 border-t border-slate-100 bg-white">
+                <button onclick="app.analyze()" class="w-full bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold py-3.5 rounded-lg shadow-lg shadow-slate-200 transition-all active:scale-[0.98] flex items-center justify-center gap-2 group">
+                    <i class="ph-bold ph-lightning group-hover:text-yellow-400 transition-colors"></i> Run Scan
+                </button>
+            </div>
+        </aside>
+
+        <main class="flex-1 bg-slate-50/50 relative overflow-y-auto custom-scroll p-8" id="reportArea">
+            
+            <div id="loader" class="hidden absolute inset-0 bg-white/90 z-50 backdrop-blur-sm flex flex-col items-center justify-center transition-opacity duration-300">
+                <div class="w-12 h-12 border-4 border-slate-200 rounded-full loader-ring mb-4"></div>
+                <h3 class="text-slate-700 font-semibold">Processing Corpus...</h3>
+                <p id="processStep" class="text-xs text-slate-500 font-mono mt-1">Initializing Tokenizer</p>
+            </div>
+
+            <div id="emptyState" class="h-full flex flex-col items-center justify-center opacity-60">
+                <i class="ph-duotone ph-chart-polar text-6xl text-slate-300 mb-4"></i>
+                <h2 class="text-lg font-semibold text-slate-600">Awaiting Analysis Data</h2>
+                <p class="text-sm text-slate-400 max-w-xs text-center mt-2">Upload a candidate profile and define role parameters to generate a compatibility report.</p>
+            </div>
+
+            <div id="results" class="hidden space-y-6 max-w-5xl mx-auto pb-20 animate__animated animate__fadeIn">
+                
+                <div class="grid grid-cols-12 gap-6">
+                    <div class="col-span-4 bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex items-center justify-between relative overflow-hidden">
+                        <div class="relative z-10">
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Relevance Score</p>
+                            <h2 id="finalScore" class="text-5xl font-bold text-slate-800 tracking-tight">0%</h2>
+                            <p id="scoreVerdict" class="text-xs font-semibold mt-2 px-2 py-1 rounded inline-block bg-slate-100 text-slate-600">Not Evaluated</p>
+                        </div>
+                        <div class="h-24 w-24 relative">
+                            <canvas id="gaugeChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="col-span-8 grid grid-cols-3 gap-4">
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col justify-center">
+                            <div class="flex items-center gap-2 mb-2">
+                                <i class="ph-fill ph-check-circle text-emerald-500"></i>
+                                <span class="text-xs font-semibold text-slate-500 uppercase">Matches</span>
+                            </div>
+                            <span id="matchCount" class="text-2xl font-bold text-slate-800">0</span>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col justify-center">
+                            <div class="flex items-center gap-2 mb-2">
+                                <i class="ph-fill ph-warning-circle text-amber-500"></i>
+                                <span class="text-xs font-semibold text-slate-500 uppercase">Gap Analysis</span>
+                            </div>
+                            <span id="gapCount" class="text-2xl font-bold text-slate-800">0</span>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col justify-center">
+                            <div class="flex items-center gap-2 mb-2">
+                                <i class="ph-fill ph-file-text text-indigo-500"></i>
+                                <span class="text-xs font-semibold text-slate-500 uppercase">Word Count</span>
+                            </div>
+                            <span id="wordCount" class="text-2xl font-bold text-slate-800">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                        <h3 class="text-sm font-bold text-slate-700 mb-6 flex items-center gap-2">
+                            <i class="ph-duotone ph-radar text-indigo-500"></i> Attribute Vector Analysis
+                        </h3>
+                        <div class="h-64 flex items-center justify-center">
+                            <canvas id="radarChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col">
+                        <h3 class="text-sm font-bold text-slate-700 mb-6 flex items-center gap-2">
+                            <i class="ph-duotone ph-circles-three-plus text-indigo-500"></i> Competency Matrix
+                        </h3>
+                        <div class="flex-1 overflow-y-auto custom-scroll pr-2 space-y-6">
+                            
+                            <div>
+                                <h4 class="text-xs font-bold text-emerald-700 bg-emerald-50 inline-block px-2 py-1 rounded mb-3">Detected Competencies</h4>
+                                <div id="foundList" class="flex flex-wrap gap-2"></div>
+                            </div>
+
+                            <div class="border-t border-slate-100 pt-4">
+                                <h4 class="text-xs font-bold text-rose-700 bg-rose-50 inline-block px-2 py-1 rounded mb-3">Critical Skill Gaps</h4>
+                                <div id="missingList" class="flex flex-wrap gap-2"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <h3 class="text-sm font-bold text-slate-700 mb-4">Parsing & Formatting Audit</h3>
+                    <div id="auditGrid" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                     <h3 class="text-sm font-bold text-slate-700 mb-4 flex justify-between items-center">
+                        <span>Contextual Keyword Density</span>
+                        <span class="text-[10px] text-slate-400 font-normal">Extracts from JD</span>
+                    </h3>
+                    <div id="contextHighlighter" class="text-xs font-mono text-slate-500 p-4 bg-slate-50 rounded border border-slate-100 max-h-40 overflow-y-auto"></div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // --- Configuration & State ---
+        const app = {
+            state: {
+                resumeText: null,
+                jdText: null,
+                charts: { radar: null, gauge: null }
+            },
+
+            init() {
+                // Initialize Tooltips
+                tippy('[data-tippy-content]', { animation: 'scale', theme: 'light-border' });
+                
+                // Initialize Drag & Drop
+                const dz = document.getElementById('dropZone');
+                const fi = document.getElementById('fileIn');
+
+                ['dragenter', 'dragover'].forEach(e => dz.addEventListener(e, ev => {
+                    ev.preventDefault(); dz.classList.add('border-indigo-500', 'bg-indigo-50/50');
+                }));
+                ['dragleave', 'drop'].forEach(e => dz.addEventListener(e, ev => {
+                    ev.preventDefault(); dz.classList.remove('border-indigo-500', 'bg-indigo-50/50');
+                }));
+
+                dz.addEventListener('drop', e => this.handleFile(e.dataTransfer.files[0]));
+                fi.addEventListener('change', e => this.handleFile(e.target.files[0]));
+            },
+
+            async handleFile(file) {
+                if (!file || file.type !== 'application/pdf') {
+                    return Swal.fire({ icon: 'error', title: 'Invalid Format', text: 'System requires a standard PDF document.', confirmButtonColor: '#1e293b' });
+                }
+
+                document.getElementById('fileName').innerHTML = `<span class="text-indigo-600 font-semibold flex items-center justify-center gap-2"><i class="ph-bold ph-file-pdf"></i> ${file.name}</span>`;
+                
+                // Read PDF
+                try {
+                    const ab = await file.arrayBuffer();
+                    const pdf = await pdfjsLib.getDocument(ab).promise;
+                    let fullText = '';
+                    
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const tc = await page.getTextContent();
+                        fullText += tc.items.map(s => s.str).join(' ') + ' ';
+                    }
+                    
+                    // Basic Cleanup
+                    this.state.resumeText = fullText.replace(/\s+/g, ' ').trim();
+                    
+                    const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true });
+                    Toast.fire({ icon: 'success', title: 'Document Parsed Successfully' });
+
+                } catch (err) {
+                    console.error(err);
+                    Swal.fire({ icon: 'error', title: 'Parsing Error', text: 'Could not extract text layer from PDF.' });
+                }
+            },
+
+            async analyze() {
+                const jdRaw = document.getElementById('jdIn').value;
+                if (!this.state.resumeText || !jdRaw) {
+                    return Swal.fire({ 
+                        icon: 'warning', 
+                        title: 'Input Required', 
+                        text: 'Please upload a resume and define the job description context.',
+                        confirmButtonColor: '#1e293b'
+                    });
+                }
+
+                this.setLoader(true);
+
+                // Simulate Async Heavy Processing
+                await new Promise(r => setTimeout(r, 500));
+                document.getElementById('processStep').innerText = 'Running NLP Tokenization...';
+                
+                // 1. Terminology Extraction (Compromise + Stopword)
+                const cleanJD = jdRaw.toLowerCase().replace(/[^a-z0-9\s]/g, '');
+                const doc = nlp(cleanJD);
+                
+                // Extract nouns and verbs, then filter stopwords
+                let terms = [...doc.nouns().out('array'), ...doc.verbs().out('array')];
+                terms = sw.removeStopwords(terms); // Using stopword CDN
+                terms = terms.filter(t => t.length > 2); // Min length filter
+                terms = [...new Set(terms)]; // Unique
+
+                await new Promise(r => setTimeout(r, 400));
+                document.getElementById('processStep').innerText = 'Calculating Fuzzy Vectors...';
+
+                // 2. Fuzzy Matching (Fuse.js)
+                const resumeLower = this.state.resumeText.toLowerCase();
+                const fuse = new Fuse([resumeLower], { includeScore: true, threshold: 0.35, ignoreLocation: true });
+                
+                const found = [];
+                const missing = [];
+
+                terms.forEach(term => {
+                    // Exact match boost
+                    if (resumeLower.includes(term)) {
+                        found.push(term);
+                    } else {
+                        // Fuzzy fallback
+                        const res = fuse.search(term);
+                        if (res.length > 0) found.push(term);
+                        else missing.push(term);
+                    }
+                });
+
+                // 3. Structural Audit
+                const sections = {
+                    'Contact Information': /email|@|phone|mobile|\+[\d]{1,3}/i.test(resumeLower),
+                    'Education History': /degree|university|college|bachelor|master|phd|diploma/i.test(resumeLower),
+                    'Work Experience': /experience|history|employment|role|position/i.test(resumeLower),
+                    'Technical Skills': /skills|technologies|stack|tools|proficiencies/i.test(resumeLower),
+                    'Leadership Indicators': /led|managed|team|project|lead|mentor/i.test(resumeLower)
+                };
+
+                // 4. Scoring Algorithm (Weighted)
+                const keywordWeight = 0.65;
+                const structureWeight = 0.35;
+                
+                const kScore = (found.length / terms.length) * 100;
+                const sScore = (Object.values(sections).filter(v=>v).length / 5) * 100;
+                
+                const finalScore = Math.round((kScore * keywordWeight) + (sScore * structureWeight));
+
+                // 5. Context Highlighting logic
+                const contextContainer = document.getElementById('contextHighlighter');
+                contextContainer.innerHTML = jdRaw; // Reset
+                const instance = new Mark(contextContainer);
+                instance.mark(found, { className: 'bg-emerald-100 text-emerald-800 font-bold px-0.5 rounded' });
+
+                // Render
+                await new Promise(r => setTimeout(r, 400));
+                this.renderDashboard(finalScore, found, missing, sections, resumeLower.split(' ').length);
+                this.setLoader(false);
+            },
+
+            renderDashboard(score, found, missing, audit, wordCount) {
+                document.getElementById('emptyState').classList.add('hidden');
+                document.getElementById('results').classList.remove('hidden');
+
+                // Update Text Stats
+                document.getElementById('finalScore').innerText = score + '%';
+                
+                // Color Logic
+                let colorClass = 'text-rose-600 bg-rose-50';
+                let verdict = 'Poor Match';
+                let chartColor = '#e11d48';
+
+                if(score > 75) { colorClass = 'text-emerald-600 bg-emerald-50'; verdict = 'Highly Compatible'; chartColor = '#059669'; }
+                else if(score > 45) { colorClass = 'text-amber-600 bg-amber-50'; verdict = 'Moderate Potential'; chartColor = '#d97706'; }
+
+                const verdictEl = document.getElementById('scoreVerdict');
+                verdictEl.className = `text-xs font-bold mt-2 px-2 py-1 rounded inline-block ${colorClass}`;
+                verdictEl.innerText = verdict;
+
+                document.getElementById('matchCount').innerText = found.length;
+                document.getElementById('gapCount').innerText = missing.length;
+                document.getElementById('wordCount').innerText = wordCount;
+
+                // Lists
+                const createBadge = (text, type) => {
+                    const cls = type === 'found' 
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' 
+                        : 'bg-slate-50 text-slate-500 border border-slate-100 opacity-70 dashed-border';
+                    return `<span class="px-2.5 py-1 text-[11px] font-medium rounded ${cls}">${text}</span>`;
+                };
+
+                document.getElementById('foundList').innerHTML = found.length ? found.map(t => createBadge(t, 'found')).join('') : '<span class="text-slate-400 text-xs italic">No competencies detected.</span>';
+                document.getElementById('missingList').innerHTML = missing.length ? missing.map(t => createBadge(t, 'missing')).join('') : '<span class="text-emerald-500 text-xs italic">No gaps detected.</span>';
+
+                // Audit Grid
+                document.getElementById('auditGrid').innerHTML = Object.entries(audit).map(([key, pass]) => `
+                    <div class="flex items-center gap-3 p-3 rounded-lg border ${pass ? 'bg-white border-slate-100' : 'bg-rose-50/50 border-rose-100'}">
+                        <div class="w-2 h-2 rounded-full ${pass ? 'bg-emerald-500' : 'bg-rose-400'}"></div>
+                        <span class="text-xs font-semibold text-slate-700">${key}</span>
+                        ${pass ? '<i class="ph-bold ph-check text-emerald-500 ml-auto text-xs"></i>' : '<i class="ph-bold ph-warning text-rose-500 ml-auto text-xs"></i>'}
+                    </div>
+                `).join('');
+
+                // Charts
+                this.renderCharts(score, found, missing, audit, chartColor);
+            },
+
+            renderCharts(score, f, m, audit, mainColor) {
+                // Radar Chart
+                if(this.state.charts.radar) this.state.charts.radar.destroy();
+                const ctxR = document.getElementById('radarChart').getContext('2d');
+                this.state.charts.radar = new Chart(ctxR, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Keyword Density', 'Structure', 'Education', 'Tech Skills', 'Experience'],
+                        datasets: [{
+                            label: 'Profile Vector',
+                            data: [
+                                (f.length / (f.length + m.length)) * 100, 
+                                Object.values(audit).filter(v=>v).length * 20,
+                                audit['Education History'] ? 100 : 20,
+                                audit['Technical Skills'] ? 100 : 30,
+                                audit['Work Experience'] ? 100 : 0
+                            ],
+                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                            borderColor: '#4f46e5',
+                            pointBackgroundColor: '#4f46e5',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: '#4f46e5'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { r: { min: 0, max: 100, ticks: { display: false }, grid: { color: '#f1f5f9' }, angleLines: { color: '#e2e8f0' } } },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+
+                // Gauge Chart
+                if(this.state.charts.gauge) this.state.charts.gauge.destroy();
+                const ctxG = document.getElementById('gaugeChart').getContext('2d');
+                this.state.charts.gauge = new Chart(ctxG, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Match', 'Gap'],
+                        datasets: [{
+                            data: [score, 100 - score],
+                            backgroundColor: [mainColor, '#f1f5f9'],
+                            borderWidth: 0,
+                            cutout: '85%',
+                            circumference: 360,
+                            rotation: 0
+                        }]
+                    },
+                    options: { plugins: { tooltip: { enabled: false }, legend: { display: false } }, cutout: '80%' }
+                });
+            },
+
+            setLoader(active) {
+                const el = document.getElementById('loader');
+                if(active) {
+                    el.classList.remove('hidden');
+                    el.classList.remove('opacity-0');
+                } else {
+                    el.classList.add('opacity-0');
+                    setTimeout(() => el.classList.add('hidden'), 300);
+                }
+            },
+
+            exportReport() {
+                const element = document.getElementById('reportArea');
+                if(!element || element.querySelector('#emptyState').style.display !== 'none') {
+                    return Swal.fire('No Data', 'Run an analysis before exporting.', 'info');
+                }
+                const opt = {
+                    margin: 0.5,
+                    filename: 'ATS_Analysis_Report.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+                };
+                html2pdf().set(opt).from(element).save();
+            }
+        };
+
+        app.init();
+    </script>
+</body>
+</html>
